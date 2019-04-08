@@ -1,21 +1,18 @@
 #include <fstream>
 #include <sstream>
 #include <string>
-#include <math.h> // if breaks, change to cmath
+#include <cmath>
 
 #define MAX(a,b) ((a) >  (b) ? (a):(b))
 #define MIN(a,b) ((a) <= (b) ? (a):(b))
 #define ABS(a) MAX(a,-a)
 
-#define c_u_int const unsigned int
-#define u_int unsigned int
-
 #define MAXTREE 30000      /* The largest tree size */
 #define MAXSAVE 1000       /* The largest tree to be saved */
 #define MXLEVEL 35         /* The maximum of tree depth */
 
-// #define nmlearn 1000       /* Number of observations */
-// #define nmbvars 5          /* Number of variables */
+#define nmlearn 1000       /* Number of observations */
+#define nmbvars 5          /* Number of variables */
 
 double dmatrix[nmlearn + 1][nmbvars + 1];  /* The working data set */
 double varmean[nmbvars + 1];   /* Means of the variables */
