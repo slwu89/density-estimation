@@ -13,6 +13,7 @@ static const size_t MXLEVEL = 35;         /* The maximum of tree depth */
 static double alstand = 0.0;  /* The total SD */
 static double allarea = 0.0;  /* The total area */
 
+//' @export
 // [[Rcpp::export]]
 void TSDE(
   const Rcpp::NumericMatrix& data

@@ -5,6 +5,16 @@
 
 using namespace Rcpp;
 
+// TSDE
+void TSDE(const Rcpp::NumericMatrix& data);
+RcppExport SEXP _tsde94_TSDE(SEXP dataSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const Rcpp::NumericMatrix& >::type data(dataSEXP);
+    TSDE(data);
+    return R_NilValue;
+END_RCPP
+}
 // rcpp_hello_world
 List rcpp_hello_world();
 RcppExport SEXP _tsde94_rcpp_hello_world() {
@@ -17,6 +27,7 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
+    {"_tsde94_TSDE", (DL_FUNC) &_tsde94_TSDE, 1},
     {"_tsde94_rcpp_hello_world", (DL_FUNC) &_tsde94_rcpp_hello_world, 0},
     {NULL, NULL, 0}
 };
