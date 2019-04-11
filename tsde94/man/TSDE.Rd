@@ -4,7 +4,8 @@
 \alias{TSDE}
 \title{TSDE algorithm}
 \usage{
-TSDE(data, mean, sd, nmbcuts = 100L, lower00 = -3.5, upper00 = 3.5)
+TSDE(data, nmbcuts = 100L, lower00 = -3.5, upper00 = 3.5,
+  csmooth = 0.1, sizetre = 20L)
 }
 \arguments{
 \item{data}{the input data (unstandardized)}
@@ -14,6 +15,10 @@ TSDE(data, mean, sd, nmbcuts = 100L, lower00 = -3.5, upper00 = 3.5)
 \item{lower00}{lower bound of data (in units of standard deviations)}
 
 \item{upper00}{upper bound of data (in units of standard deviations)}
+
+\item{csmooth}{the smoothing parameter: should be smaller than 0.7}
+
+\item{sizetre}{the final tree size}
 }
 \description{
 TSDE algorithm

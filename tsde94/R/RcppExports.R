@@ -10,10 +10,12 @@
 #' @param nmbcuts number of possible splitting points
 #' @param lower00 lower bound of data (in units of standard deviations)
 #' @param upper00 upper bound of data (in units of standard deviations)
+#' @param csmooth the smoothing parameter: should be smaller than 0.7
+#' @param sizetre the final tree size
 #'
 #' @export
-TSDE <- function(data, nmbcuts = 100L, lower00 = -3.5, upper00 = 3.5) {
-    invisible(.Call('_tsde94_TSDE', PACKAGE = 'tsde94', data, nmbcuts, lower00, upper00))
+TSDE <- function(data, nmbcuts = 100L, lower00 = -3.5, upper00 = 3.5, csmooth = 0.1, sizetre = 20L) {
+    invisible(.Call('_tsde94_TSDE', PACKAGE = 'tsde94', data, nmbcuts, lower00, upper00, csmooth, sizetre))
 }
 
 rcpp_hello_world <- function() {

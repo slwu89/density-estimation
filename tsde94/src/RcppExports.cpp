@@ -6,15 +6,17 @@
 using namespace Rcpp;
 
 // TSDE
-void TSDE(const Rcpp::NumericMatrix& data, const size_t nmbcuts, const double lower00, const double upper00);
-RcppExport SEXP _tsde94_TSDE(SEXP dataSEXP, SEXP nmbcutsSEXP, SEXP lower00SEXP, SEXP upper00SEXP) {
+void TSDE(const Rcpp::NumericMatrix& data, const size_t nmbcuts, const double lower00, const double upper00, const double csmooth, const size_t sizetre);
+RcppExport SEXP _tsde94_TSDE(SEXP dataSEXP, SEXP nmbcutsSEXP, SEXP lower00SEXP, SEXP upper00SEXP, SEXP csmoothSEXP, SEXP sizetreSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const Rcpp::NumericMatrix& >::type data(dataSEXP);
     Rcpp::traits::input_parameter< const size_t >::type nmbcuts(nmbcutsSEXP);
     Rcpp::traits::input_parameter< const double >::type lower00(lower00SEXP);
     Rcpp::traits::input_parameter< const double >::type upper00(upper00SEXP);
-    TSDE(data, nmbcuts, lower00, upper00);
+    Rcpp::traits::input_parameter< const double >::type csmooth(csmoothSEXP);
+    Rcpp::traits::input_parameter< const size_t >::type sizetre(sizetreSEXP);
+    TSDE(data, nmbcuts, lower00, upper00, csmooth, sizetre);
     return R_NilValue;
 END_RCPP
 }
@@ -30,7 +32,7 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_tsde94_TSDE", (DL_FUNC) &_tsde94_TSDE, 4},
+    {"_tsde94_TSDE", (DL_FUNC) &_tsde94_TSDE, 6},
     {"_tsde94_rcpp_hello_world", (DL_FUNC) &_tsde94_rcpp_hello_world, 0},
     {NULL, NULL, 0}
 };

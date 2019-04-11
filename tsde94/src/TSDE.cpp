@@ -9,8 +9,16 @@
 #include <math.h>
 #include <iostream>
 
-/* helper functions to allocate and free memory for 2d arrays */
-double** make_array(const size_t nrow, const size_t ncol){
+/* helper functions to allocate and free memory for arrays */
+double* make_array(const size_t len){
+  return new double[len];
+}
+
+void free_array(double* array){
+  delete[] array;
+}
+
+double** make_2darray(const size_t nrow, const size_t ncol){
     double** array = new double*[nrow];
     for(size_t i=0; i<nrow; i++){
         array[i] = new double[ncol];
@@ -18,7 +26,7 @@ double** make_array(const size_t nrow, const size_t ncol){
     return array;
 }
 
-void free_array(double** array, const size_t nrow){
+void free_2darray(double** array, const size_t nrow){
     for(size_t i=0; i<nrow; i++){
         delete[] array[i];
     }
@@ -119,10 +127,19 @@ void TSDE(
   double x,xcut;
 
   /* dynamically allocated arrays */
-  double dmatrix[nmlearn + 1][nmbvars + 1];  /* The working data set */
-  double varmean[nmbvars + 1];   /* Means of the variables */
-  double varstan[nmbvars + 1];   /* Standard deviations of the variables */
+  size_t dmatrix_r = nmlearn + 1;
+  size_t dmatrix_c = nmbvars + 1;
+  double** dmatrix = make_2darray(dmatrix_r,dmatrix_c); /* The working data set */
 
+  size_t varmean_l = nmbvars + 1;
+  double* varmean = make_array(varmean_l); /* Means of the variables */
+
+  size_t varstan_l = varmean_l;
+  double* varstan = make_array(varstan_l); /* Standard deviations of the variables */
+
+  // double dmatrix[nmlearn + 1][nmbvars + 1];  /* The working data set */
+  // double varmean[nmbvars + 1];   /* Means of the variables */
+  // double varstan[nmbvars + 1];   /* Standard deviations of the variables */
 
   /* standardize the input data */
   for(ivar=1;ivar<=nmbvars;ivar++) {
@@ -162,147 +179,14 @@ void TSDE(
   }
   // END DEBUGGING
 
-  /* prepare the rest of the dynamically allocated arrays */
-  double ccsplit[nmbcuts + 2];
-  int    ndlower[nmbvars + 1];  /* The moving lower bound of the node */
-  int    ndupper[nmbvars + 1];  /* The moving upper bound of the node */
-  double cutmass[nmbcuts + 1];  /* The moving mass in split */
-  double density[MXLEVEL + 2][nmlearn + 1];  /* The moving density values of the node */
-  double smatrix[nmlearn + 1][nmbvars + 1];
-  double lmatrix[nmlearn + 1][nmbvars + 1];
-  double umatrix[nmlearn + 1][nmbvars + 1];
-  double fmatrix[nmlearn * nmbvars * nmbcuts / 5];
-
-  /* Prepare the split information */
-  deltax = (upper00 - lower00) / (nmbcuts + 1);   /* x is the step length */
-  for(k=0;k<=(nmbcuts+1);k++) ccsplit[k] = k * deltax + lower00;
-  x = upper00 - lower00;
-  allarea = pow(x, (double) nmbvars);
 
 
-  // /* ################################################################################
-  // #   Generate a large smoothing array to speed the tree growing process
-  // ################################################################################ */
-  //
-  // int slist;
-  // int j,j1,j2,jj;
-  // double x0,x1,x2;
-  //
-  // slist = 0;        /* The information started from here */
-  // for(ivar=1;ivar<=nmbvars;ivar++) {
-  //   for(i=1;i<=nmlearn;i++) {
-  //     x0 = data.at(i-1,ivar-1);
-  //     x1 = x0 - 0.5 * csmooth;    /* The lower bound of the kernel */
-  //     x2 = x0 + 0.5 * csmooth;    /* The upper bound of the kernel */
-  //
-  //     smatrix[i][ivar] = slist;  /* information pointer */
-  //
-  //     j1 = 0;
-  //     while(ccsplit[j1] < x1) j1 ++;
-  //     if(j1 > 0) j1 --;
-  //     lmatrix[i][ivar] = j1;     /* the first interval that cross with kernel */
-  //
-  //     j2 = j1;
-  //     while(ccsplit[j2] < x2 && j2 < nmbcuts) j2 ++;
-  //     umatrix[i][ivar] = j2;     /* the last interval that cross with kernel */
-  //
-  //     if(j2 == j1) {
-  //       fmatrix[slist] = x2 - x1;
-  //     } else {
-  //       fmatrix[slist] = (ccsplit[j1 + 1] - x1) / csmooth;
-  //       fmatrix[slist + j2 - j1] = (x2 - ccsplit[j2]) / csmooth;
-  //       for(j=(j1+1);j<j2;j++) {
-  //         jj = slist + j - j1;
-  //         fmatrix[jj] = deltax / csmooth;
-  //       }
-  //     }
-  //     slist += j2 - j1 + 1;
-  //   }
-  // }
-  //
-  // /* ################################################################################
-  // #   Grow the tree
-  // ################################################################################ */
-  //
-  // int nextnd;
-  // int hignod,tlevel;
-  // double ndmass,ndarea;
-  //
-  // for(ivar=1;ivar<=nmbvars;ivar++) {
-  //   ndlower[ivar] = 0;
-  //   ndupper[ivar] = nmbcuts + 1;
-  // }
-  //
-  // lnodes = 1; nextnd = 1;
-  // hignod = 0; tlevel = 0;
-  // ndmass = nmlearn; ndarea = 1.0;
-  // for(i=1;i<=nmlearn;i++) density[tlevel][i] = 1.0;
-  //   A1:
-  // nextnd ++;
-  //
-  // TWORK.noright = 1; TWORK.trlevel = tlevel;
-  // TWORK.cansplt = 0; TWORK.parnptr = hignod;
-  //
-  // TWORK.nodmass = ndmass; TWORK.nodarea = ndarea;
-  // TWORK.nodeprb = TWORK.nodmass / nmlearn;
-  // TWORK.nodeest = TWORK.nodeprb / TWORK.nodarea;
-  // TWORK.nodeerr = - TWORK.nodeprb * TWORK.nodeest;
-  //
-  // if(TWORK.nodeest <= thresho) goto A2;
-  // if(TWORK.nodmass <= atmnode) goto A2;
-  // if(TWORK.trlevel >= MXLEVEL) goto A2;
-  //
-  // casplt(lnodes);
-  // if(TWORK.splcode == 0) goto A2;
-  //
-  // tlevel ++;
-  // TWORK.leftptr = nextnd;
-  // msleft(TWORK.trlevel,TWORK.splcode,TWORK.cupoint,TWORK.ndlower,TWORK.ndupper);
-  // ndmass = TWORK.lefmass;
-  // ndarea = TWORK.lefarea;
-  //
-  // hignod = lnodes; lnodes = nextnd;
-  // goto A1;
-  //   A2:
-  // TWORK.cansplt = 1;
-  //
-  // lnodes = TWORK.parnptr;
-  // tlevel --;
-  // if(TWORK.noright == 1) {
-  //   TWORK.noright = 0;
-  //   TWORK.rignptr = nextnd;
-  //   tlevel ++;
-  //   ndmass = TWORK.nodmass - TWORK.lefmass;
-  //   ndarea = TWORK.nodarea - TWORK.lefarea;
-  //   msrigt(TWORK.trlevel,TWORK.splcode,TWORK.cupoint,TWORK.ndupper);
-  //   hignod = lnodes;
-  //   lnodes = nextnd;
-  //   goto A1;
-  // } else {
-  //    A3:
-  //   ndlower[TWORK.splcode] = TWORK.ndlower;
-  //   ndupper[TWORK.splcode] = TWORK.ndupper;
-  //
-  //   if(lnodes == 1) return;
-  //
-  //   lnodes = TWORK.parnptr;
-  //   tlevel --;
-  //   if(TWORK.noright == 1) {
-  //     TWORK.noright = 0;
-  //     TWORK.rignptr = nextnd;
-  //     tlevel ++;
-  //     ndmass = TWORK.nodmass - TWORK.lefmass;
-  //     ndarea = TWORK.nodarea - TWORK.lefarea;
-  //     msrigt(TWORK.trlevel,TWORK.splcode,TWORK.cupoint,TWORK.ndupper);
-  //     hignod = lnodes;
-  //     lnodes = nextnd;
-  //     goto A1;
-  //   } else  goto A3;
-  // }
-  //
 
+  /* clean up dynamically allocated memory */
+  free_2darray(dmatrix,dmatrix_r);
+  free_array(varmean);
+  free_array(varstan);
 
-  // /* clean up dynamically allocated memory */
   // for(size_t i=1; i<=nmlearn; i++){
   //   delete [] dmatrix[i];
   // }
