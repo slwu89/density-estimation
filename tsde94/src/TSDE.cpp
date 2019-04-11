@@ -9,6 +9,22 @@
 #include <math.h>
 #include <iostream>
 
+/* helper functions to allocate and free memory for 2d arrays */
+double** make_array(const size_t nrow, const size_t ncol){
+    double** array = new double*[nrow];
+    for(size_t i=0; i<nrow; i++){
+        array[i] = new double[ncol];
+    }
+    return array;
+}
+
+void free_array(double** array, const size_t nrow){
+    for(size_t i=0; i<nrow; i++){
+        delete[] array[i];
+    }
+    delete[] array;
+}
+
 /* global and static variables */
 static const size_t MAXTREE = 30000;      /* The largest tree size */
 static const size_t MAXSAVE = 1000;       /* The largest tree to be saved */
