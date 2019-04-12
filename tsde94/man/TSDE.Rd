@@ -21,5 +21,13 @@ TSDE(data, nmbcuts = 100L, lower00 = -3.5, upper00 = 3.5,
 \item{sizetre}{the final tree size}
 }
 \description{
-TSDE algorithm
+run the algorithm described in Spear, Grieb, Shang (1994); return a data frame object
+}
+\examples{
+\dontrun{
+library(tsde94)
+data(sdata)
+TSDE(sdata)
+}
+
 }

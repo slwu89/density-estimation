@@ -3,7 +3,7 @@
 
 #' TSDE algorithm
 #'
-#'
+#' run the algorithm described in Spear, Grieb, Shang (1994); return a data frame object
 #'
 #'
 #' @param data the input data (unstandardized)
@@ -12,6 +12,13 @@
 #' @param upper00 upper bound of data (in units of standard deviations)
 #' @param csmooth the smoothing parameter: should be smaller than 0.7
 #' @param sizetre the final tree size
+#'
+#' @examples
+#' \dontrun{
+#' library(tsde94)
+#' data(sdata)
+#' TSDE(sdata)
+#' }
 #'
 #' @export
 TSDE <- function(data, nmbcuts = 100L, lower00 = -3.5, upper00 = 3.5, csmooth = 0.1, sizetre = 20L) {
