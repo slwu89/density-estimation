@@ -8,6 +8,7 @@
 /* other headers */
 #include <math.h>
 #include <iostream>
+#include <algorithm>
 
 
 /* ################################################################################
@@ -65,7 +66,7 @@ static double allarea = 0.0;  /* The total area */
 
 static double deltax = 0.0; /* The step length of each split */
 
-/* these are arrays */
+/* these are arrays on the stack */
 static int nodleft[MAXTREE*MAXSAVE/8];
 static int nodrigt[MAXTREE*MAXSAVE/8];
 static double error33[MAXTREE*MAXSAVE/8];
@@ -105,6 +106,7 @@ struct node {
 	int    rowname;
 };
 
+/* the tree is allocated on the stack */
 static struct node nodes[MAXTREE + 1];
 #define TWORK nodes[lnodes]
 
@@ -114,12 +116,28 @@ static struct node nodes[MAXTREE + 1];
 ################################################################################ */
 
 void casplt(int lnodes);
+
 void msleft(int level, int ivar, int cutp, int lower, int upper);
+
 void msrigt(int level, int ivar, int cutp, int upper);
+
 void cutree();
-void smooth();
-void gttree();
+
+void smooth(const size_t nmlearn, const size_t nmbvars, const double csmooth, const size_t nmbcuts,
+            double** dmatrix,
+            double** umatrix,
+            double** smatrix,
+            double** lmatrix,
+            double* ccsplit,
+            double* fmatrix);
+
+void gttree(const size_t nmlearn, const size_t nmbvars, const size_t nmbcuts,
+            int* ndlower,
+            int* ndupper,
+            double** density);
+
 void trsort();
+
 void cutree();
 
 
@@ -244,6 +262,12 @@ void TSDE(
 	x = upper00 - lower00;
 	allarea = pow(x, (double) nmbvars);
 
+  /* Generate a large smoothing array to speed the tree growing process */
+  smooth(nmlearn, nmbvars, csmooth, nmbcuts,dmatrix,umatrix,smatrix,lmatrix,ccsplit,fmatrix);
+
+
+
+
 
   /* clean up dynamically allocated memory */
   free_2darray(dmatrix,dmatrix_r);
@@ -269,3 +293,262 @@ void TSDE(
   // delete[] varmean;
   // delete[] varstan;
 };
+
+
+/* ################################################################################
+#   smooth: builds a smoothing array before TSDE starts
+################################################################################ */
+
+void smooth(const size_t nmlearn, const size_t nmbvars, const double csmooth, const size_t nmbcuts,
+            double** dmatrix,
+            double** umatrix,
+            double** smatrix,
+            double** lmatrix,
+            double* ccsplit,
+            double* fmatrix
+){
+
+  /* local variables */
+  int ivar,i, slist;
+  int j,j1,j2,jj;
+  double x0,x1,x2;
+
+  slist = 0;        /* The information started from here */
+	for(ivar=1;ivar<=nmbvars;ivar++) {
+		for(i=1;i<=nmlearn;i++) {
+			x0 = dmatrix[i][ivar];
+			x1 = x0 - 0.5 * csmooth;    /* The lower bound of the kernel */
+			x2 = x0 + 0.5 * csmooth;    /* The upper bound of the kernel */
+
+			smatrix[i][ivar] = slist;  /* information pointer */
+
+			j1 = 0;
+			while(ccsplit[j1] < x1) j1 ++;
+			if(j1 > 0) j1 --;
+			lmatrix[i][ivar] = j1;     /* the first interval that cross with kernel */
+
+			j2 = j1;
+			while(ccsplit[j2] < x2 && j2 < nmbcuts) j2 ++;
+			umatrix[i][ivar] = j2;     /* the last interval that cross with kernel */
+
+			if(j2 == j1) {
+				fmatrix[slist] = x2 - x1;
+			} else {
+				fmatrix[slist] = (ccsplit[j1 + 1] - x1) / csmooth;
+				fmatrix[slist + j2 - j1] = (x2 - ccsplit[j2]) / csmooth;
+				for(j=(j1+1);j<j2;j++) {
+					jj = slist + j - j1;
+					fmatrix[jj] = deltax / csmooth;
+				}
+			}
+			slist += j2 - j1 + 1;
+		}
+	}
+
+};
+
+
+/* ################################################################################
+#   gttree: grow the estimating tree
+################################################################################ */
+
+void gttree(const size_t nmlearn, const size_t nmbvars, const size_t nmbcuts,
+            int* ndlower,
+            int* ndupper,
+            double** density
+){
+	int lnodes,nextnd;
+	int hignod,tlevel;
+	int ivar,i;
+	double ndmass,ndarea;
+
+	for(ivar=1;ivar<=nmbvars;ivar++) {
+		ndlower[ivar] = 0;
+		ndupper[ivar] = nmbcuts + 1;
+	}
+
+	lnodes = 1; nextnd = 1;
+	hignod = 0; tlevel = 0;
+	ndmass = nmlearn; ndarea = 1.0;
+	for(i=1;i<=nmlearn;i++) density[tlevel][i] = 1.0;
+    A1:
+	nextnd ++;
+
+	TWORK.noright = 1; TWORK.trlevel = tlevel;
+	TWORK.cansplt = 0; TWORK.parnptr = hignod;
+
+	TWORK.nodmass = ndmass; TWORK.nodarea = ndarea;
+	TWORK.nodeprb = TWORK.nodmass / nmlearn;
+	TWORK.nodeest = TWORK.nodeprb / TWORK.nodarea;
+	TWORK.nodeerr = - TWORK.nodeprb * TWORK.nodeest;
+
+	if(TWORK.nodeest <= thresho) goto A2;
+	if(TWORK.nodmass <= atmnode) goto A2;
+	if(TWORK.trlevel >= MXLEVEL) goto A2;
+
+	casplt(lnodes);
+	if(TWORK.splcode == 0) goto A2;
+
+	tlevel ++;
+	TWORK.leftptr = nextnd;
+	msleft(TWORK.trlevel,TWORK.splcode,TWORK.cupoint,TWORK.ndlower,TWORK.ndupper);
+	ndmass = TWORK.lefmass;
+	ndarea = TWORK.lefarea;
+
+	hignod = lnodes; lnodes = nextnd;
+	goto A1;
+    A2:
+	TWORK.cansplt = 1;
+
+	lnodes = TWORK.parnptr;
+	tlevel --;
+	if(TWORK.noright == 1) {
+		TWORK.noright = 0;
+		TWORK.rignptr = nextnd;
+		tlevel ++;
+		ndmass = TWORK.nodmass - TWORK.lefmass;
+		ndarea = TWORK.nodarea - TWORK.lefarea;
+		msrigt(TWORK.trlevel,TWORK.splcode,TWORK.cupoint,TWORK.ndupper);
+		hignod = lnodes;
+		lnodes = nextnd;
+		goto A1;
+	} else {
+	   A3:
+		ndlower[TWORK.splcode] = TWORK.ndlower;
+		ndupper[TWORK.splcode] = TWORK.ndupper;
+
+		if(lnodes == 1) return;
+
+		lnodes = TWORK.parnptr;
+		tlevel --;
+		if(TWORK.noright == 1) {
+			TWORK.noright = 0;
+			TWORK.rignptr = nextnd;
+			tlevel ++;
+			ndmass = TWORK.nodmass - TWORK.lefmass;
+			ndarea = TWORK.nodarea - TWORK.lefarea;
+			msrigt(TWORK.trlevel,TWORK.splcode,TWORK.cupoint,TWORK.ndupper);
+			hignod = lnodes;
+			lnodes = nextnd;
+			goto A1;
+		} else  goto A3;
+	}
+}
+
+/* ################################################################################
+#   functions used in gttree to make splits
+################################################################################ */
+
+/* Find the best splitting variable and spliting place */
+void casplt(int lnodes,
+            const size_t nmlearn, const size_t nmbvars,
+            double* cutmass,
+            int* ndlower,
+            int* ndupper,
+            double** density,
+            double** umatrix,
+            double** smatrix,
+            double** lmatrix,
+            double* ccsplit,
+            double* fmatrix
+){
+	int lower,upper,ivar;
+	int start,end,s0;
+	int i,j,j0,j1;
+	double u,v,x0,x1;
+	double dens,smax,rimp;
+	double mleft,aleft;
+
+	TWORK.splcode = 0;
+	smax = 0.0;
+	for(ivar=1;ivar<=nmbvars;ivar++) {
+		lower = ndlower[ivar] + 1;
+		upper = ndupper[ivar];
+		if(upper - lower <= 0) continue;
+
+		for(j=lower;j<=upper;j++) cutmass[j] = 0.0;
+
+		for(i=1;i<=nmlearn;i++) {
+			dens = density[TWORK.trlevel][i];
+			if(dens <= epsilon) continue;
+			s0    = smatrix[i][ivar];
+			start = lmatrix[i][ivar];
+			end   = umatrix[i][ivar];
+
+			j0 = start + 1;
+			j0 = std::max(lower,j0);
+			j1 = std::min(upper,end);
+			v  = 0.0;
+			for(j=j0;j<=j1;j++) v += fmatrix[s0 + j - start];
+			dens /= v;
+			for(j=j0;j<=j1;j++) {
+				u = dens * fmatrix[s0 + j - start];
+				cutmass[j] += u;
+			}
+		}
+
+		mleft = 0.0; aleft = 0.0;
+		x0 = ccsplit[lower - 1];
+		x1 = ccsplit[upper] - x0;
+		for(j=lower;j<upper;j++) {
+			mleft += cutmass[j];
+			aleft = (ccsplit[j] - x0) / x1;
+
+			rimp = mleft / TWORK.nodmass - aleft;
+			rimp = rimp * rimp;
+			if(rimp > smax) {
+				smax = rimp;
+				TWORK.splcode = ivar;
+				TWORK.cupoint = j;
+				TWORK.ndupper = ndupper[ivar];
+				TWORK.ndlower = ndlower[ivar];
+				TWORK.lefmass = mleft;
+				TWORK.lefarea = aleft * TWORK.nodarea;
+			}
+		}
+	}
+}
+
+/* MSLEFT sends data to the left node */
+void msleft(int level,int ivar,int cutp,int lower,int upper)
+{
+	int start,end;
+	int s0;
+	int i,j,j0,j1;
+	float u,v,y;
+
+	ndupper[ivar] = cutp;
+	lower ++;
+	for(i=1;i<=nmlearn;i++) {
+		density[level + 1][i] = density[level][i];
+		if(density[level][i] > epsilon) {
+			s0 = smatrix[i][ivar];
+			start = lmatrix[i][ivar];
+			end   = umatrix[i][ivar];
+			j0 = start + 1;
+			j0 = MAX(lower,j0);
+			j1 = MIN(upper,end);
+
+			u = 0.0; v = 0.0;
+			for(j=j0;j<=j1;j++) {
+				y = fmatrix[s0 + j - start];
+				v += y;
+				if(j <= cutp) u += y;
+			}
+			u /= v;
+			density[level + 1][i] *= u;
+		}
+	}
+}
+
+/* MSRIGT sends data to the right node */
+void msrigt(int level,int ivar,int cutp,int upper)
+{
+	int i;
+
+	ndupper[ivar] = upper;
+	ndlower[ivar] = cutp;
+
+	for(i=1;i<=nmlearn;i++)
+		density[level + 1][i] = density[level][i] - density[level+1][i];
+}
