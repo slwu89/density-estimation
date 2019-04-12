@@ -6,9 +6,10 @@
 using namespace Rcpp;
 
 // TSDE
-void TSDE(const Rcpp::NumericMatrix& data, const size_t nmbcuts, const double lower00, const double upper00, const double csmooth, const size_t sizetre);
+Rcpp::DataFrame TSDE(const Rcpp::NumericMatrix& data, const size_t nmbcuts, const double lower00, const double upper00, const double csmooth, const size_t sizetre);
 RcppExport SEXP _tsde94_TSDE(SEXP dataSEXP, SEXP nmbcutsSEXP, SEXP lower00SEXP, SEXP upper00SEXP, SEXP csmoothSEXP, SEXP sizetreSEXP) {
 BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const Rcpp::NumericMatrix& >::type data(dataSEXP);
     Rcpp::traits::input_parameter< const size_t >::type nmbcuts(nmbcutsSEXP);
@@ -16,8 +17,8 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const double >::type upper00(upper00SEXP);
     Rcpp::traits::input_parameter< const double >::type csmooth(csmoothSEXP);
     Rcpp::traits::input_parameter< const size_t >::type sizetre(sizetreSEXP);
-    TSDE(data, nmbcuts, lower00, upper00, csmooth, sizetre);
-    return R_NilValue;
+    rcpp_result_gen = Rcpp::wrap(TSDE(data, nmbcuts, lower00, upper00, csmooth, sizetre));
+    return rcpp_result_gen;
 END_RCPP
 }
 // rcpp_hello_world

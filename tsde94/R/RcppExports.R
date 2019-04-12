@@ -15,7 +15,7 @@
 #'
 #' @export
 TSDE <- function(data, nmbcuts = 100L, lower00 = -3.5, upper00 = 3.5, csmooth = 0.1, sizetre = 20L) {
-    invisible(.Call('_tsde94_TSDE', PACKAGE = 'tsde94', data, nmbcuts, lower00, upper00, csmooth, sizetre))
+    .Call('_tsde94_TSDE', PACKAGE = 'tsde94', data, nmbcuts, lower00, upper00, csmooth, sizetre)
 }
 
 rcpp_hello_world <- function() {

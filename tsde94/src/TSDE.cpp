@@ -115,11 +115,32 @@ static struct node nodes[MAXTREE + 1];
 #   function declarations (see definitions below main TSDE function)
 ################################################################################ */
 
-void casplt(int lnodes);
+void casplt(int lnodes,
+            const size_t nmlearn, const size_t nmbvars,
+            double* cutmass,
+            int* ndlower,
+            int* ndupper,
+            double** density,
+            double** umatrix,
+            double** smatrix,
+            double** lmatrix,
+            double* ccsplit,
+            double* fmatrix);
 
-void msleft(int level, int ivar, int cutp, int lower, int upper);
+void msleft(int level,int ivar,int cutp,int lower,int upper,
+            const size_t nmlearn, const size_t nmbvars,
+            int* ndupper,
+            double** density,
+            double** umatrix,
+            double** smatrix,
+            double** lmatrix,
+            double* fmatrix);
 
-void msrigt(int level, int ivar, int cutp, int upper);
+void msrigt(int level,int ivar,int cutp,int upper,
+            const size_t nmlearn, const size_t nmbvars,
+            int* ndupper,
+            int* ndlower,
+            double** density);
 
 void cutree();
 
@@ -134,11 +155,17 @@ void smooth(const size_t nmlearn, const size_t nmbvars, const double csmooth, co
 void gttree(const size_t nmlearn, const size_t nmbvars, const size_t nmbcuts,
             int* ndlower,
             int* ndupper,
-            double** density);
+            double** density,
+            double* cutmass,
+            double** umatrix,
+            double** smatrix,
+            double** lmatrix,
+            double* ccsplit,
+            double* fmatrix);
 
 void trsort();
 
-void cutree();
+void cutree(const size_t sizetre);
 
 
 /* ################################################################################
@@ -159,7 +186,7 @@ void cutree();
 //'
 //' @export
 // [[Rcpp::export]]
-void TSDE(
+Rcpp::DataFrame TSDE(
   const Rcpp::NumericMatrix& data,
   const size_t nmbcuts = 100,
   const double lower00 = -3.5,
@@ -220,12 +247,12 @@ void TSDE(
     }
   }
 
-  // DEBUGGING
-  for(ivar = 1;ivar <= nmbvars;ivar ++) {
-    std::cout << "mean of var " << ivar << ", is " << varmean[ivar] << "\n";
-    std::cout << "sd of var " << ivar << ", is " << varstan[ivar] << "\n";
-  }
-  // END DEBUGGING
+  // // DEBUGGING
+  // for(ivar = 1;ivar <= nmbvars;ivar ++) {
+  //   std::cout << "mean of var " << ivar << ", is " << varmean[ivar] << "\n";
+  //   std::cout << "sd of var " << ivar << ", is " << varstan[ivar] << "\n";
+  // }
+  // // END DEBUGGING
 
   /* define more dynamically allocated arrays */
   size_t ccsplit_l = nmbcuts + 2;
@@ -262,36 +289,159 @@ void TSDE(
 	x = upper00 - lower00;
 	allarea = pow(x, (double) nmbvars);
 
+  // std::cout << "make the smoothing array\n";
   /* Generate a large smoothing array to speed the tree growing process */
   smooth(nmlearn, nmbvars, csmooth, nmbcuts,dmatrix,umatrix,smatrix,lmatrix,ccsplit,fmatrix);
 
+  // std::cout << "grow the tree\n";
+  /* Grow the tree */
+  gttree(nmlearn, nmbvars, nmbcuts,
+         ndlower,
+         ndupper,
+         density,
+         cutmass,
+         umatrix,
+         smatrix,
+         lmatrix,
+         ccsplit,
+         fmatrix
+  );
+
+  // std::cout << "sort the tree\n";
+  /* Sort the tree */
+  trsort();
+
+  // std::cout << "cut the tree\n";
+  /* Cut the tree to the defined size */
+  cutree(sizetre);
+
+  /* Finally,  summarize and output the results */
+  Rcpp::IntegerVector out_rowname;
+  Rcpp::IntegerVector out_variable;
+  Rcpp::NumericVector out_inside;
+  Rcpp::NumericVector out_below;
+  Rcpp::StringVector  out_sleft;
+  Rcpp::StringVector  out_sright;
+
+  // ofstream fout;
+  // ofstream fout1;
+  // fout.open("summary.txt");
+  // fout1.open("tree.txt");
+  //
+  // fout << "The adjusting factor is: " << allarea*alstand << "\n";
+  // fout1 << "\tvar inside below sleft srigt \n";
+
+  lnodes = 1;
+  TWORK.rowname = 1;
+    A1:
+    TWORK.noright = 1;
+    if(TWORK.cansplt != 0) {
+    // fout1 << TWORK.rowname << "\t" << TWORK.nodeest << "\t" <<  TWORK.nodarea << "\t" << 0 << "\t" << 0 << "\n";
+        out_rowname.push_back(TWORK.rowname);
+        out_variable.push_back(0);
+        // std::cout << "TWORK.nodeest " << TWORK.nodeest << "\n";
+        out_inside.push_back(TWORK.nodeest);
+        out_below.push_back(TWORK.nodarea);
+        out_sleft.push_back(std::string("0"));
+        out_sright.push_back(std::string("0"));
+        goto A2;
+    }
+
+  left = TWORK.leftptr;
+    rigt = TWORK.rignptr;
+
+    r = TWORK.rowname;
+    ivar = TWORK.splcode;
+    xcut = ccsplit[TWORK.cupoint] * varstan[ivar] + varmean[ivar];
+
+            // std::cout << "TWORK.nodeest " << TWORK.nodeest << "\n";
+    out_rowname.push_back(TWORK.rowname);
+    out_variable.push_back(ivar);
+    out_inside.push_back(TWORK.nodeest);
+    out_below.push_back(TWORK.nodarea);
+    out_sleft.push_back(std::string( "x" + std::to_string(ivar) + "<=" + std::to_string(xcut) ));
+    out_sright.push_back(std::string( "x" + std::to_string(ivar) + ">" + std::to_string(xcut) ));
+
+  // fout1 << TWORK.rowname << "\t" << "x" << ivar << "\t" << TWORK.nodeest << "\t" << TWORK.nodarea << "\t" << "x" << ivar << "<=" << xcut << "\t" <<  "x" << ivar << ">" << xcut << "\n";
+  // fout << "\tA case goes left if variable" << ivar << "<=" << xcut << "\n";
+  // fout << "\t Mass \t Area \t Density \tLoss \n";
+  //   fout << "\t" << TWORK.nodmass << "\t" << TWORK.nodarea << "\t" << TWORK.nodeest << "\t" << TWORK.nodeerr << "\n";
+    lnodes = left;
+    // fout << "\t" << TWORK.nodmass << "\t" << TWORK.nodarea << "\t" << TWORK.nodeest << "\t" << TWORK.nodeerr << "\n";
+    TWORK.rowname = 2 * r;
+    lnodes = rigt;
+    // fout << "\t" << TWORK.nodmass << "\t" << TWORK.nodarea << "\t" << TWORK.nodeest << "\t" << TWORK.nodeerr << "\n\n";
+    TWORK.rowname = 2 * r + 1;
+
+    lnodes = left;
+    goto A1;
+    A2:
+    TWORK.cansplt = 1;
+    lnodes = TWORK.parnptr;
+    if(TWORK.noright == 1) {
+         TWORK.noright = 0;
+         lnodes = TWORK.rignptr;
+         goto A1;
+    } else {
+       A3:
+         /* this seems to be the case when the algorithm finishes? */
+         if(lnodes == 1){
+
+           /* clean up dynamically allocated memory */
+           free_2darray(dmatrix,dmatrix_r);
+           free_array(varmean);
+           free_array(varstan);
+
+           free_array(ccsplit);
+           free_int_array(ndlower);
+           free_int_array(ndupper);
+           free_array(cutmass);
+
+           free_2darray(density, density_r);
+           free_2darray(smatrix, smatrix_r);
+           free_2darray(lmatrix, lmatrix_r);
+           free_2darray(umatrix, umatrix_r);
+
+           free_array(fmatrix);
+
+           Rcpp::DataFrame tree = Rcpp::DataFrame::create(
+             Rcpp::Named("rowname") = out_rowname,
+             Rcpp::Named("var") = out_variable,
+             Rcpp::Named("inside") = out_inside,
+             Rcpp::Named("below") = out_below,
+             Rcpp::Named("sleft") = out_sleft,
+             Rcpp::Named("srigt") = out_sright
+           );
+           return tree;
+         }
+
+         lnodes = TWORK.parnptr;
+         if(TWORK.noright == 1) {
+              TWORK.noright = 0;
+              lnodes = TWORK.rignptr;
+              goto A1;
+        } else  goto A3;
+  }
 
 
 
 
-  /* clean up dynamically allocated memory */
-  free_2darray(dmatrix,dmatrix_r);
-  free_array(varmean);
-  free_array(varstan);
-
-  free_array(ccsplit);
-  free_int_array(ndlower);
-  free_int_array(ndupper);
-  free_array(cutmass);
-
-  free_2darray(density, density_r);
-  free_2darray(smatrix, smatrix_r);
-  free_2darray(lmatrix, lmatrix_r);
-  free_2darray(umatrix, umatrix_r);
-
-  free_array(fmatrix);
-
-  // for(size_t i=1; i<=nmlearn; i++){
-  //   delete [] dmatrix[i];
-  // }
-  // delete[] dmatrix;
-  // delete[] varmean;
-  // delete[] varstan;
+  // /* clean up dynamically allocated memory */
+  // free_2darray(dmatrix,dmatrix_r);
+  // free_array(varmean);
+  // free_array(varstan);
+  //
+  // free_array(ccsplit);
+  // free_int_array(ndlower);
+  // free_int_array(ndupper);
+  // free_array(cutmass);
+  //
+  // free_2darray(density, density_r);
+  // free_2darray(smatrix, smatrix_r);
+  // free_2darray(lmatrix, lmatrix_r);
+  // free_2darray(umatrix, umatrix_r);
+  //
+  // free_array(fmatrix);
 };
 
 
@@ -355,7 +505,13 @@ void smooth(const size_t nmlearn, const size_t nmbvars, const double csmooth, co
 void gttree(const size_t nmlearn, const size_t nmbvars, const size_t nmbcuts,
             int* ndlower,
             int* ndupper,
-            double** density
+            double** density,
+            double* cutmass,
+            double** umatrix,
+            double** smatrix,
+            double** lmatrix,
+            double* ccsplit,
+            double* fmatrix
 ){
 	int lnodes,nextnd;
 	int hignod,tlevel;
@@ -386,12 +542,31 @@ void gttree(const size_t nmlearn, const size_t nmbvars, const size_t nmbcuts,
 	if(TWORK.nodmass <= atmnode) goto A2;
 	if(TWORK.trlevel >= MXLEVEL) goto A2;
 
-	casplt(lnodes);
+	casplt(lnodes,
+    nmlearn,nmbvars,
+    cutmass,
+    ndlower,
+    ndupper,
+    density,
+    umatrix,
+    smatrix,
+    lmatrix,
+    ccsplit,
+    fmatrix);
+
 	if(TWORK.splcode == 0) goto A2;
 
 	tlevel ++;
 	TWORK.leftptr = nextnd;
-	msleft(TWORK.trlevel,TWORK.splcode,TWORK.cupoint,TWORK.ndlower,TWORK.ndupper);
+	msleft(TWORK.trlevel,TWORK.splcode,TWORK.cupoint,TWORK.ndlower,TWORK.ndupper,
+         nmlearn,nmbvars,
+         ndupper,
+         density,
+         umatrix,
+         smatrix,
+         lmatrix,
+         fmatrix);
+
 	ndmass = TWORK.lefmass;
 	ndarea = TWORK.lefarea;
 
@@ -408,7 +583,13 @@ void gttree(const size_t nmlearn, const size_t nmbvars, const size_t nmbcuts,
 		tlevel ++;
 		ndmass = TWORK.nodmass - TWORK.lefmass;
 		ndarea = TWORK.nodarea - TWORK.lefarea;
-		msrigt(TWORK.trlevel,TWORK.splcode,TWORK.cupoint,TWORK.ndupper);
+
+		msrigt(TWORK.trlevel,TWORK.splcode,TWORK.cupoint,TWORK.ndupper,
+           nmlearn, nmbvars,
+           ndupper,
+           ndlower,
+           density);
+
 		hignod = lnodes;
 		lnodes = nextnd;
 		goto A1;
@@ -427,7 +608,13 @@ void gttree(const size_t nmlearn, const size_t nmbvars, const size_t nmbcuts,
 			tlevel ++;
 			ndmass = TWORK.nodmass - TWORK.lefmass;
 			ndarea = TWORK.nodarea - TWORK.lefarea;
-			msrigt(TWORK.trlevel,TWORK.splcode,TWORK.cupoint,TWORK.ndupper);
+
+			msrigt(TWORK.trlevel,TWORK.splcode,TWORK.cupoint,TWORK.ndupper,
+             nmlearn, nmbvars,
+             ndupper,
+             ndlower,
+             density);
+
 			hignod = lnodes;
 			lnodes = nextnd;
 			goto A1;
@@ -510,8 +697,15 @@ void casplt(int lnodes,
 }
 
 /* MSLEFT sends data to the left node */
-void msleft(int level,int ivar,int cutp,int lower,int upper)
-{
+void msleft(int level,int ivar,int cutp,int lower,int upper,
+            const size_t nmlearn, const size_t nmbvars,
+            int* ndupper,
+            double** density,
+            double** umatrix,
+            double** smatrix,
+            double** lmatrix,
+            double* fmatrix
+){
 	int start,end;
 	int s0;
 	int i,j,j0,j1;
@@ -526,8 +720,8 @@ void msleft(int level,int ivar,int cutp,int lower,int upper)
 			start = lmatrix[i][ivar];
 			end   = umatrix[i][ivar];
 			j0 = start + 1;
-			j0 = MAX(lower,j0);
-			j1 = MIN(upper,end);
+			j0 = std::max(lower,j0);
+			j1 = std::min(upper,end);
 
 			u = 0.0; v = 0.0;
 			for(j=j0;j<=j1;j++) {
@@ -542,8 +736,12 @@ void msleft(int level,int ivar,int cutp,int lower,int upper)
 }
 
 /* MSRIGT sends data to the right node */
-void msrigt(int level,int ivar,int cutp,int upper)
-{
+void msrigt(int level,int ivar,int cutp,int upper,
+            const size_t nmlearn, const size_t nmbvars,
+            int* ndupper,
+            int* ndlower,
+            double** density
+){
 	int i;
 
 	ndupper[ivar] = upper;
@@ -551,4 +749,126 @@ void msrigt(int level,int ivar,int cutp,int upper)
 
 	for(i=1;i<=nmlearn;i++)
 		density[level + 1][i] = density[level][i] - density[level+1][i];
+}
+
+
+/* ################################################################################
+#   TRSORT pruns the tree and generate the error lists
+################################################################################ */
+
+void trsort(){
+  int lnodes,left,rigt;
+  int nl,nr,sl,sr;
+  int i,j,k,nn;
+  float roft;
+
+  lnodes = 1;
+  nodelst = 0;
+    A1:
+  TWORK.noright = 1;
+
+  if(TWORK.cansplt != 0) goto A2;
+  lnodes = TWORK.leftptr;
+  goto A1;
+    A2:
+  TWORK.nodelst = nodelst;
+  TWORK.NumberT = 1;
+  nodelst += 1;
+  error33[nodelst] = TWORK.nodeerr;
+  nodleft[nodelst] = 0;
+  nodrigt[nodelst] = 0;
+
+  lnodes = TWORK.parnptr;
+  if(TWORK.noright == 1) {
+    TWORK.noright = 0;
+    lnodes = TWORK.rignptr;
+    goto A1;
+  } else {
+     A3:
+    TWORK.nodelst = nodelst;
+
+    left = TWORK.leftptr; rigt = TWORK.rignptr;
+    nl = nodes[left].NumberT;
+    nr = nodes[rigt].NumberT;
+    sl = nodes[left].nodelst;
+    sr = nodes[rigt].nodelst;
+    nn = nl + nr;
+    TWORK.NumberT = (int)std::min((size_t)nn,MAXSAVE);
+    for(i=2;i<=TWORK.NumberT;i++) error33[nodelst + i] = bigestn;
+    error33[nodelst + 1] = TWORK.nodeerr;
+    nodleft[nodelst + 1] = 0;
+    nodrigt[nodelst + 1] = 0;
+
+    for(i=1;i<=nl;i++) {
+      for(j=1;j<=nr;j++) {
+        nn = i + j;
+        if(nn > MAXSAVE) continue;
+
+        roft = error33[sl + i] + error33[sr + j];
+
+        k = nodelst + nn;
+        if(roft < error33[k] - epsilon) {
+          error33[k] = roft;
+          nodleft[k] = i;
+          nodrigt[k] = j;
+        }
+      }
+    }
+
+    nodelst += TWORK.NumberT;
+    if(lnodes == 1) return;
+
+    lnodes = TWORK.parnptr;
+    if(TWORK.noright == 1) {
+      TWORK.noright = 0;
+      lnodes = TWORK.rignptr;
+      goto A1;
+    } else  goto A3;
+  }
+}
+
+
+/* ################################################################################
+#   Cut the tree to the defined size
+################################################################################ */
+
+void cutree(const size_t sizetre){
+
+        int lnodes,k;
+        int left,rigt;
+
+        lnodes = 1;
+        TWORK.subbest = sizetre;
+    A1:
+        TWORK.noright = 1;
+
+        if(TWORK.subbest <= 1) goto A2;
+
+        left = TWORK.leftptr;
+        rigt = TWORK.rignptr;
+        k = TWORK.nodelst + TWORK.subbest;
+
+        nodes[left].subbest = nodleft[k];
+        nodes[rigt].subbest = nodrigt[k];
+
+        lnodes = left;
+        goto A1;
+   A2:
+        TWORK.cansplt = 1;
+        lnodes = TWORK.parnptr;
+        if(TWORK.noright == 1) {
+                TWORK.noright = 0;
+                lnodes = TWORK.rignptr;
+                goto A1;
+        } else {
+           A3:
+                if(lnodes == 1) return;
+
+                lnodes = TWORK.parnptr;
+                if(TWORK.noright == 1) {
+                        TWORK.noright = 0;
+                        lnodes = TWORK.rignptr;
+                        goto A1;
+                } else  goto A3;
+        }
 }
