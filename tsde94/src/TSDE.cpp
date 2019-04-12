@@ -174,7 +174,7 @@ void cutree(const size_t sizetre);
 
 //' TSDE algorithm
 //'
-//'
+//' run the algorithm described in Spear, Grieb, Shang (1994); return a data frame object
 //'
 //'
 //' @param data the input data (unstandardized)
@@ -183,6 +183,13 @@ void cutree(const size_t sizetre);
 //' @param upper00 upper bound of data (in units of standard deviations)
 //' @param csmooth the smoothing parameter: should be smaller than 0.7
 //' @param sizetre the final tree size
+//'
+//' @examples
+//' \dontrun{
+//' library(tsde94)
+//' data(sdata)
+//' TSDE(sdata)
+//' }
 //'
 //' @export
 // [[Rcpp::export]]
