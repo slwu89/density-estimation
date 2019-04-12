@@ -412,7 +412,7 @@ Rcpp::DataFrame TSDE(
            free_array(fmatrix);
 
            Rcpp::DataFrame tree = Rcpp::DataFrame::create(
-             Rcpp::Named("rowname") = out_rowname,
+             Rcpp::Named("NodeID") = out_rowname, /* ID of the node (in the tree) */
              Rcpp::Named("var") = out_variable,
              Rcpp::Named("inside") = out_inside,
              Rcpp::Named("below") = out_below,
@@ -449,6 +449,7 @@ Rcpp::DataFrame TSDE(
   // free_2darray(umatrix, umatrix_r);
   //
   // free_array(fmatrix);
+  Rcpp::stop("warning: the program should not reach this point");
 };
 
 
