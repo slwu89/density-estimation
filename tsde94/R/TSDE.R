@@ -16,6 +16,12 @@
 #' @export
 TSDE_maketree <- function(df,pass,varnames){
 
+  pass <- as.data.frame(pass)
+  colnames(pass) <- varnames
+
+  df$sleft <- as.character(df$sleft)
+  df$srigt <- as.character(df$srigt)
+
   # get parent IDs
   df$parentID <- ifelse(df$NodeID == 1L, NA, df$NodeID %/% 2L)
 
@@ -54,15 +60,20 @@ TSDE_maketree <- function(df,pass,varnames){
     parent_row <- df[df$NodeID == current_row$parentID,]
     which_child <- ifelse(current_row$NodeID %% 2L == 0L, "left", "right")
     pass_parent_list <- pass_list[[parent_row$rowID]]
-    if(which.child == "left")
+    if(which_child == "left")
     {
-      pass_list[[i]] <- pass_parent_list[eval(parse(text = paste("pass_parent_list$", parent_row$sleft.new, sep = ""))), ]
+      pass_list[[i]] <- pass_parent_list[eval(parse(text = paste("pass_parent_list$", parent_row$sleft, sep = ""))), ]
     } else
     {
-      pass_list[[i]] <- pass_parent_list[!eval(parse(text = paste("pass_parent_list$", parent_row$sleft.new, sep = ""))), ]
+      pass_list[[i]] <- pass_parent_list[!eval(parse(text = paste("pass_parent_list$", parent_row$sleft, sep = ""))), ]
     }
   }
 
   df$PassNo <- unlist(lapply(pass_list, nrow))
 
+  nodes <- data.frame(name = df$NodeID)
+  relations <- data.frame(from = df$parentID[-1], to = df$NodeID[-1])
+  g <- igraph::graph.data.frame(relations, directed = FALSE, vertices = nodes)
+
+  return(g)
 }
