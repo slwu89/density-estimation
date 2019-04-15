@@ -12,9 +12,11 @@
 #'
 #' @param df output of \code{\link{TSDE}} (a \code{\link{data.frame}} object)
 #' @param pass a \code{\link{data.frame}} object which contains
+#' @param varnames a character vector of variable names (columns of pass)
+#' @param plot produce a plot of the tree?
 #'
 #' @export
-TSDE_maketree <- function(df,pass,varnames){
+TSDE_maketree <- function(df,pass,varnames,plot=FALSE){
 
   pass <- as.data.frame(pass)
   colnames(pass) <- varnames
@@ -74,6 +76,19 @@ TSDE_maketree <- function(df,pass,varnames){
   nodes <- data.frame(name = df$NodeID)
   relations <- data.frame(from = df$parentID[-1], to = df$NodeID[-1])
   g <- igraph::graph.data.frame(relations, directed = FALSE, vertices = nodes)
+  
+  if(plot){
+    plot(g, 
+         layout = igraph::layout_as_tree(g, root = 1), 
+         vertex.label = round(df$inside,3), 
+         vertex.shape = df$shape, 
+         vertex.size = 16, 
+         vertex.color = df$color, 
+         vertex.label.color = "black", 
+         edge.label = df$PassNo[-1], 
+         edge.label.color = "black", 
+         edge.label.dist = 20)
+  }
 
   return(g)
 }
