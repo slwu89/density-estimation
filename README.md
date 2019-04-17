@@ -11,5 +11,8 @@ To test it with some sample data provided with the package, you can do:
 ```R
 library(tsde94)
 data(sdata)
-TSDE(sdata)
+tree <- TSDE(sdata)
+g <- TSDE_maketree(df = tree,pass = sdata,varnames = LETTERS[1:5],plot = TRUE)
 ```
+
+For help, just do `?TSDE` or `?TSDE_maketree`
