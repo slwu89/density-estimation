@@ -16,3 +16,4 @@ List mlkmeans(const arma::mat& data, const int& clusters) {
     return List::create(_["clusters"]	= clusters,
                         _["result"]		= assignments);
 }
+
