@@ -13,3 +13,10 @@ library(tsde94)
 data(sdata)
 TSDE(sdata)
 ```
+
+
+## det11
+
+This is an R package that runs the algorithm described in Ram, P., & Gray, A. G. (2011). Density estimation trees. https://doi.org/10.1145/2020408.2020507
+
+It depends on mlpack and the RcppMLPACK project, see http://www.mlpack.org and https://github.com/rcppmlpack/RcppMLPACK1
