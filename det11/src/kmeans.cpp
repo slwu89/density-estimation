@@ -3,6 +3,7 @@
 using namespace mlpack::kmeans;
 using namespace Rcpp;
 
+//' @export
 // [[Rcpp::export]]
 List mlkmeans(const arma::mat& data, const int& clusters) {
     
