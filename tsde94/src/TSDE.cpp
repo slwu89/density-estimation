@@ -870,7 +870,7 @@ void cutree(const size_t sizetre){
                 lnodes = TWORK.rignptr;
                 goto A1;
         } else {
-           A3:
+   A3:
                 if(lnodes == 1) return;
 
                 lnodes = TWORK.parnptr;
