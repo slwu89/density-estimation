@@ -30,6 +30,8 @@ Rcpp::List ml_det(arma::mat& dataset,
 
   // PrintLeafMembership(det,dataset,)
 
+  Rcpp::Rcout << det->ToString();
+
   /* free the memory */
   delete det;
 
