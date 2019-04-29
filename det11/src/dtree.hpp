@@ -164,6 +164,7 @@ class DTree
    * @param level Level of the tree (should start at 0).
    */
   //void WriteTree(FILE *fp, const size_t level = 0) const;
+  void PrintTree(const size_t level) const;
 
   /**
    * Index the buckets for possible usage later; this results in every leaf in

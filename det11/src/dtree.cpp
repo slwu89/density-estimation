@@ -607,8 +607,37 @@ void DTree::WriteTree(FILE *fp, const size_t level) const
       fprintf(fp, " BT:%d", bucketTag);
   }
 }
-
 */
+
+void DTree::PrintTree(const size_t level) const {
+  if (subtreeLeaves > 1){
+    Rcpp::Rcout << "\n";
+    for (size_t i = 0; i < level; ++i){
+      Rcpp::Rcout << "|\t";
+    }
+    Rcpp::Rcout << "Var. " << splitDim << " > " << splitValue;
+
+    right->PrintTree(level + 1);
+
+    Rcpp::Rcout << "\n";
+    for (size_t i = 0; i < level; ++i){
+      Rcpp::Rcout << "|\t";
+    }
+    Rcpp::Rcout << "Var. " << splitDim << " > " << splitValue;
+
+    left->PrintTree(level);
+  }
+  else // If we are a leaf...
+  {
+    Rcpp::Rcout << ": f(x)=" << std::exp(std::log(ratio) - logVolume);
+    // fprintf(fp, ": f(x)=%lg", std::exp(std::log(ratio) - logVolume));
+    if (bucketTag != -1){
+      Rcpp::Rcout << " BT:" << bucketTag;
+      // fprintf(fp, " BT:%d", bucketTag);
+    }
+  }
+};
+
 // Index the buckets for possible usage later.
 int DTree::TagTree(const int tag)
 {
