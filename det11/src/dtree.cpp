@@ -629,6 +629,7 @@ void DTree::PrintTree(const size_t level) const {
   }
   else // If we are a leaf...
   {
+    Rcpp::Rcout << " I'm a leaf!";
     Rcpp::Rcout << ": f(x)=" << std::exp(std::log(ratio) - logVolume);
     // fprintf(fp, ": f(x)=%lg", std::exp(std::log(ratio) - logVolume));
     if (bucketTag != -1){
@@ -713,7 +714,7 @@ std::string DTree::ToString() const
   convert << "    Splitting Dimension: " << splitDim << std::endl;
   convert << "    Splitting Value: " << splitValue << std::endl;
   convert << "    Is Root: " << root << std::endl;
-  convert << "    # of points in Node to Total # of points" << ratio ;
+  convert << "    # of points in Node to Total # of points " << ratio ;
   convert << std::endl;
   return convert.str();
 }

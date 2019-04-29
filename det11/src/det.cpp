@@ -33,7 +33,7 @@ Rcpp::List ml_det(arma::mat& dataset,
   Rcpp::Rcout << det->ToString();
 
   Rcpp::Rcout << std::endl << " --- PRINTING TREE --- " << std::endl;
-  det->PrintTree(1);
+  det->PrintTree(0);
   Rcpp::Rcout << std::endl << " --- END PRINTING --- " << std::endl;
 
   /* free the memory */
