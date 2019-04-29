@@ -623,7 +623,7 @@ void DTree::PrintTree(const size_t level) const {
     for (size_t i = 0; i < level; ++i){
       Rcpp::Rcout << "|\t";
     }
-    Rcpp::Rcout << "Var. " << splitDim << " > " << splitValue;
+    Rcpp::Rcout << "Var. " << splitDim << " <= " << splitValue;
 
     left->PrintTree(level);
   }
