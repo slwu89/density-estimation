@@ -75,8 +75,7 @@ DTree* Trainer(arma::mat& dataset,
                const size_t folds,
                const bool useVolumeReg = false,
                const size_t maxLeafSize = 10,
-               const size_t minLeafSize = 5,
-               const std::string unprunedTreeOutput = "");
+               const size_t minLeafSize = 5);
 
 
 #endif // __MLPACK_METHODS_DET_DT_UTILS_HPP

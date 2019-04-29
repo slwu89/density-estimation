@@ -121,8 +121,7 @@ DTree* Trainer(arma::mat& dataset,
                             const size_t folds,
                             const bool useVolumeReg,
                             const size_t maxLeafSize,
-                            const size_t minLeafSize,
-                            const std::string unprunedTreeOutput)
+                            const size_t minLeafSize)
 {
   // Initialize the tree.
   DTree* dtree = new DTree(dataset);
@@ -143,27 +142,27 @@ DTree* Trainer(arma::mat& dataset,
   Rcpp::Rcout << dtree->SubtreeLeaves() << " leaf nodes in the tree using full "
       << "dataset; minimum alpha: " << alpha << "." << std::endl;
 
-  // Compute densities for the training points in the full tree, if we were
-  // asked for this.
-  if (unprunedTreeOutput != "")
-  {
-    std::ofstream outfile(unprunedTreeOutput.c_str());
-    if (outfile.good())
-    {
-      for (size_t i = 0; i < dataset.n_cols; ++i)
-      {
-        arma::vec testPoint = dataset.unsafe_col(i);
-        outfile << dtree->ComputeValue(testPoint) << std::endl;
-      }
-    }
-    else
-    {
-      Rcpp::Rcout << "Can't open '" << unprunedTreeOutput << "' to write computed"
-          << " densities to." << std::endl;
-    }
-
-    outfile.close();
-  }
+  // // Compute densities for the training points in the full tree, if we were
+  // // asked for this.
+  // if (unprunedTreeOutput != "")
+  // {
+  //   std::ofstream outfile(unprunedTreeOutput.c_str());
+  //   if (outfile.good())
+  //   {
+  //     for (size_t i = 0; i < dataset.n_cols; ++i)
+  //     {
+  //       arma::vec testPoint = dataset.unsafe_col(i);
+  //       outfile << dtree->ComputeValue(testPoint) << std::endl;
+  //     }
+  //   }
+  //   else
+  //   {
+  //     Rcpp::Rcout << "Can't open '" << unprunedTreeOutput << "' to write computed"
+  //         << " densities to." << std::endl;
+  //   }
+  //
+  //   outfile.close();
+  // }
 
   // Sequentially prune and save the alpha values and the values of c_t^2 * r_t.
   std::vector<std::pair<double, double> > prunedSequence;
