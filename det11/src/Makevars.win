@@ -1,1 +1,2 @@
-PKG_LIBS= PKG_LIBS = $(shell "${R_HOME}/bin${R_ARCH_BIN}/Rscript.exe" -e "RcppMLPACK:::LdFlags()") $(LAPACK_LIBS) $(BLAS_LIBS) $(FLIBS)
+CXX_STD = CXX14
+# PKG_LIBS= PKG_LIBS = $(shell "${R_HOME}/bin${R_ARCH_BIN}/Rscript.exe" -e "RcppMLPACK:::LdFlags()") $(LAPACK_LIBS) $(BLAS_LIBS) $(FLIBS)

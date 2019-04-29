@@ -4,15 +4,15 @@
 \alias{ml_det}
 \title{Density Estimation Trees (DET)}
 \usage{
-ml_det(data, folds = 10L, volreg = FALSE, maxsize = 10L,
+ml_det(dataset, folds = 10L, volreg = FALSE, maxsize = 10L,
   minsize = 5L)
 }
 \arguments{
-\item{data}{matrix (rows are observations; columns are variables)}
-
 \item{folds}{number of folds for k-fold cross validation (0 does LOO-CV)}
 
 \item{minsize}{}
+
+\item{data}{matrix (rows are observations; columns are variables)}
 }
 \description{
 Density Estimation Trees (DET)

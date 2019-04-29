@@ -14,8 +14,3 @@ ml_det <- function(dataset, folds = 10L, volreg = FALSE, maxsize = 10L, minsize 
     .Call('_det11_ml_det', PACKAGE = 'det11', dataset, folds, volreg, maxsize, minsize)
 }
 
-#' @export
-mlkmeans <- function(data, clusters) {
-    .Call('_det11_mlkmeans', PACKAGE = 'det11', data, clusters)
-}
-
