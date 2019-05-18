@@ -5,12 +5,15 @@
 
 
 //' Density Estimation Trees (DET)
+//' 
+//' In general the default values work fine for most applications. 
+//' See \url{https://mlpack.org/papers/det.pdf} for guidance if you want to change them.
 //'
-//' @param data matrix (rows are observations; columns are variables)
-//' @param folds number of folds for k-fold cross validation (0 does LOO-CV)
-//' @param volreg
-//' @param maxsize
-//' @param minsize
+//' @param dataset (note: rows must be variables; columns are observations)
+//' @param folds number of folds for k-fold cross validation
+//' @param volreg use volume regularization?
+//' @param maxsize vaximum number of points allowed in a leaf
+//' @param minsize minimum number of points allowed in a leaf
 //'
 //' @export
 // [[Rcpp::export]]
@@ -19,10 +22,11 @@ Rcpp::List ml_det(arma::mat& dataset,
                   const bool volreg = false,
                   const size_t maxsize = 10,
                   const size_t minsize = 5){
-
-  /* want the variable importances */
-  // arma::Col<double> varimp(dataset.n_cols,0.);
-
+  
+  if(folds < 2){
+    Rcpp::stop("must use >= 2 folds for CV");
+  }
+  
   /* make the tree */
   DTree* det = Trainer(dataset,folds,volreg,maxsize,minsize);
 

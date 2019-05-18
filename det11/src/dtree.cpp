@@ -615,26 +615,24 @@ void DTree::PrintTree(const size_t level) const {
     for (size_t i = 0; i < level; ++i){
       Rcpp::Rcout << "|\t";
     }
-    Rcpp::Rcout << "Var. " << splitDim << " > " << splitValue;
-
+    Rcpp::Rcout << "Var. " << splitDim << " > " << splitValue << "; ratio: " << ratio;
+    Rcpp::Rcout << " printing right";
     right->PrintTree(level + 1);
 
     Rcpp::Rcout << "\n";
     for (size_t i = 0; i < level; ++i){
       Rcpp::Rcout << "|\t";
     }
-    Rcpp::Rcout << "Var. " << splitDim << " <= " << splitValue;
-
+    Rcpp::Rcout << "Var. " << splitDim << " <= " << splitValue << "; ratio: " << ratio;
+    Rcpp::Rcout << " printing left";
     left->PrintTree(level);
   }
   else // If we are a leaf...
   {
     Rcpp::Rcout << " I'm a leaf!";
     Rcpp::Rcout << ": f(x)=" << std::exp(std::log(ratio) - logVolume);
-    // fprintf(fp, ": f(x)=%lg", std::exp(std::log(ratio) - logVolume));
     if (bucketTag != -1){
       Rcpp::Rcout << " BT:" << bucketTag;
-      // fprintf(fp, " BT:%d", bucketTag);
     }
   }
 };

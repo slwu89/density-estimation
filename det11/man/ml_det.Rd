@@ -8,12 +8,17 @@ ml_det(dataset, folds = 10L, volreg = FALSE, maxsize = 10L,
   minsize = 5L)
 }
 \arguments{
-\item{folds}{number of folds for k-fold cross validation (0 does LOO-CV)}
+\item{dataset}{(note: rows must be variables; columns are observations)}
 
-\item{minsize}{}
+\item{folds}{number of folds for k-fold cross validation}
 
-\item{data}{matrix (rows are observations; columns are variables)}
+\item{volreg}{use volume regularization?}
+
+\item{maxsize}{vaximum number of points allowed in a leaf}
+
+\item{minsize}{minimum number of points allowed in a leaf}
 }
 \description{
-Density Estimation Trees (DET)
+In general the default values work fine for most applications. 
+See \url{https://mlpack.org/papers/det.pdf} for guidance if you want to change them.
 }

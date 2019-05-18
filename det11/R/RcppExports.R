@@ -2,12 +2,15 @@
 # Generator token: 10BE3573-1514-4C36-9D1C-5A225CD40393
 
 #' Density Estimation Trees (DET)
+#' 
+#' In general the default values work fine for most applications. 
+#' See \url{https://mlpack.org/papers/det.pdf} for guidance if you want to change them.
 #'
-#' @param data matrix (rows are observations; columns are variables)
-#' @param folds number of folds for k-fold cross validation (0 does LOO-CV)
-#' @param volreg
-#' @param maxsize
-#' @param minsize
+#' @param dataset (note: rows must be variables; columns are observations)
+#' @param folds number of folds for k-fold cross validation
+#' @param volreg use volume regularization?
+#' @param maxsize vaximum number of points allowed in a leaf
+#' @param minsize minimum number of points allowed in a leaf
 #'
 #' @export
 ml_det <- function(dataset, folds = 10L, volreg = FALSE, maxsize = 10L, minsize = 5L) {
