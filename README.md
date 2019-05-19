@@ -21,7 +21,9 @@ For help, just do `?TSDE` or `?TSDE_maketree`
 
 This is an R package that runs the algorithm described in Ram, P., & Gray, A. G. (2011). Density estimation trees. https://doi.org/10.1145/2020408.2020507
 
-It depends on mlpack and the RcppMLPACK project, see http://www.mlpack.org and https://github.com/rcppmlpack/RcppMLPACK1
+It depends on code from mlpack, see http://www.mlpack.org.
+
+To install this package, you must have first installed the Rcpp, RcppArmadillo, and igraph packages, which it depends on. Then you can install it from github directly with devtools::install_github("slwu89/density-estimation", subdir="det11")
 
 To test it with some sample data, you can do (remember to transpose the data):
 
