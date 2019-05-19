@@ -7,23 +7,24 @@
 using namespace Rcpp;
 
 // ml_det
-Rcpp::List ml_det(arma::mat& dataset, const size_t folds, const bool volreg, const size_t maxsize, const size_t minsize);
-RcppExport SEXP _det11_ml_det(SEXP datasetSEXP, SEXP foldsSEXP, SEXP volregSEXP, SEXP maxsizeSEXP, SEXP minsizeSEXP) {
+Rcpp::List ml_det(arma::mat& dataset, const bool verbose, const size_t folds, const bool volreg, const size_t maxsize, const size_t minsize);
+RcppExport SEXP _det11_ml_det(SEXP datasetSEXP, SEXP verboseSEXP, SEXP foldsSEXP, SEXP volregSEXP, SEXP maxsizeSEXP, SEXP minsizeSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< arma::mat& >::type dataset(datasetSEXP);
+    Rcpp::traits::input_parameter< const bool >::type verbose(verboseSEXP);
     Rcpp::traits::input_parameter< const size_t >::type folds(foldsSEXP);
     Rcpp::traits::input_parameter< const bool >::type volreg(volregSEXP);
     Rcpp::traits::input_parameter< const size_t >::type maxsize(maxsizeSEXP);
     Rcpp::traits::input_parameter< const size_t >::type minsize(minsizeSEXP);
-    rcpp_result_gen = Rcpp::wrap(ml_det(dataset, folds, volreg, maxsize, minsize));
+    rcpp_result_gen = Rcpp::wrap(ml_det(dataset, verbose, folds, volreg, maxsize, minsize));
     return rcpp_result_gen;
 END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_det11_ml_det", (DL_FUNC) &_det11_ml_det, 5},
+    {"_det11_ml_det", (DL_FUNC) &_det11_ml_det, 6},
     {NULL, NULL, 0}
 };
 

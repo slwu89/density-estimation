@@ -23,17 +23,19 @@
  */
 #include "dtree.hpp"
 #include <stack>
- 
+
 // global variables
 size_t node_ids;
 
 // stuff we need to output
-Rcpp::NumericVector split_right;
-Rcpp::NumericVector split_left;
-Rcpp::IntegerVector split_var;
-Rcpp::IntegerVector node_id;
-Rcpp::LogicalVector is_leaf;
-Rcpp::NumericVector data_below; // ratio (points in node to total number of points)
+std::vector<double> split_right;
+std::vector<double> split_left;
+std::vector<int> split_var;
+std::vector<std::string> split_side; // for child nodes, what side of their parent did they branch off of?
+std::vector<int> node_id;
+std::vector<int> parent_id;
+std::vector<int> is_leaf;
+std::vector<double> data_below; // ratio (points in node to total number of points)
 
 // DTree member functions:
 
@@ -654,57 +656,6 @@ void DTree::PrintTree(const size_t level) const {
   }
 };
 
-// print the tree as a R data frame
-Rcpp::DataFrame DTree::Tree2df() const {
-  
-
-  
-  
-  return Rcpp::DataFrame::create(
-    Rcpp::Named("ID") = node_id,
-    Rcpp::Named("leaf") = is_leaf,
-    Rcpp::Named("variable") = split_var,
-    Rcpp::Named("below") = data_below,
-    Rcpp::Named("right") = split_right,
-    Rcpp::Named("left") = split_left
-  );
-};
-
-// helper to walk down the tree for Tree2df
-void DTree::writeTree(const size_t level) const {
-  
-  if(level != 0){
-    Rcpp::Rcout << "warning: writing a tree from a node below the root ... are you sure you want to do this?\n";
-  }
-  
-  if (subtreeLeaves > 1){
-    Rcpp::Rcout << "\n";
-    for (size_t i = 0; i < level; ++i){
-      Rcpp::Rcout << "|\t";
-    }
-    Rcpp::Rcout << "Var. " << splitDim << " > " << splitValue << "; ratio: " << ratio << " id: " << myID;
-    Rcpp::Rcout << " printing right";
-    right->PrintTree(level + 1);
-    
-    Rcpp::Rcout << "\n";
-    for (size_t i = 0; i < level; ++i){
-      Rcpp::Rcout << "|\t";
-    }
-    Rcpp::Rcout << "Var. " << splitDim << " <= " << splitValue << "; ratio: " << ratio << " id: " << myID;
-    Rcpp::Rcout << " printing left";
-    left->PrintTree(level);
-  }
-  else // If we are a leaf...
-  {
-    Rcpp::Rcout << "; I'm a leaf! ratio: " << ratio << " id: " << myID;
-    Rcpp::Rcout << ": f(x)=" << std::exp(std::log(ratio) - logVolume);
-    if (bucketTag != -1){
-      Rcpp::Rcout << " BT:" << bucketTag;
-    }
-  }
-  
-};
-
 // Index the buckets for possible usage later.
 int DTree::TagTree(const int tag)
 {
@@ -784,3 +735,83 @@ std::string DTree::ToString() const
   convert << std::endl;
   return convert.str();
 }
+
+
+/* ################################################################################
+# Stuff to return tree to R
+################################################################################ */
+
+// print the tree as a R data frame
+Rcpp::DataFrame DTree::Tree2df() const {
+
+  writeTree();
+
+  return Rcpp::DataFrame::create(
+    Rcpp::Named("ID") = node_id,
+    Rcpp::Named("parent_ID") = parent_id,
+    Rcpp::Named("parent_split_edge") = split_side,
+    Rcpp::Named("leaf") = is_leaf,
+    Rcpp::Named("variable") = split_var,
+    Rcpp::Named("below") = data_below,
+    Rcpp::Named("right") = split_right,
+    Rcpp::Named("left") = split_left
+  );
+};
+
+// helper to walk down the tree for Tree2df
+void DTree::writeTree(const size_t level, const size_t parentID, const std::string parentSide) const {
+
+  if (subtreeLeaves > 1){
+
+    // right split
+    node_id.push_back(myID);
+    parent_id.push_back(parentID);
+    is_leaf.push_back(0);
+    split_var.push_back(splitDim+1);
+    split_side.push_back(parentSide);
+    data_below.push_back(ratio);
+    split_right.push_back(splitValue);
+    // split_left.push_back(0.);
+    split_left.push_back(splitValue);
+
+    right->writeTree(level + 1,myID,"right");
+
+    // Rcpp::Rcout << "\n";
+    // for (size_t i = 0; i < level; ++i){
+    //   Rcpp::Rcout << "|\t";
+    // }
+    // Rcpp::Rcout << "Var. " << splitDim << " <= " << splitValue << "; ratio: " << ratio << " id: " << myID;
+    // Rcpp::Rcout << " printing left";
+
+    // // left split
+    // node_id.push_back(myID);
+    // parent_id.push_back(parentID);
+    // is_leaf.push_back(0);
+    // split_var.push_back(splitDim+1);
+    // data_below.push_back(ratio);
+    // split_right.push_back(0.);
+    // split_left.push_back(splitValue);
+
+    left->writeTree(level,myID,"left");
+  }
+  else // If we are a leaf...
+  {
+
+    node_id.push_back(myID);
+    parent_id.push_back(parentID);
+    is_leaf.push_back(1);
+    split_var.push_back(-1);
+    split_side.push_back(parentSide);
+    data_below.push_back(ratio);
+    split_right.push_back(0.);
+    split_left.push_back(0.);
+
+    // Rcpp::Rcout << "; I'm a leaf! ratio: " << ratio << " id: " << myID;
+    // Rcpp::Rcout << ": f(x)=" << std::exp(std::log(ratio) - logVolume);
+    // if (bucketTag != -1){
+    //   Rcpp::Rcout << " BT:" << bucketTag;
+    // }
+
+  }
+
+};

@@ -6,6 +6,7 @@
 #' In general the default values work fine for most applications. 
 #' See \url{https://mlpack.org/papers/det.pdf} for guidance if you want to change them.
 #'
+#' @param verbose print out tree diagnostics?
 #' @param dataset (note: rows must be variables; columns are observations)
 #' @param folds number of folds for k-fold cross validation
 #' @param volreg use volume regularization?
@@ -13,7 +14,7 @@
 #' @param minsize minimum number of points allowed in a leaf
 #'
 #' @export
-ml_det <- function(dataset, folds = 10L, volreg = FALSE, maxsize = 10L, minsize = 5L) {
-    .Call('_det11_ml_det', PACKAGE = 'det11', dataset, folds, volreg, maxsize, minsize)
+ml_det <- function(dataset, verbose = TRUE, folds = 10L, volreg = FALSE, maxsize = 10L, minsize = 5L) {
+    .Call('_det11_ml_det', PACKAGE = 'det11', dataset, verbose, folds, volreg, maxsize, minsize)
 }
 

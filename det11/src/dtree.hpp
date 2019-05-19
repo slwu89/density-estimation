@@ -27,17 +27,20 @@
 #include <RcppArmadillo.h>
 
 #include <string>
+#include <vector>
 #include <math.h>
 
 extern size_t node_ids;
 
 // stuff we need to output
-extern Rcpp::NumericVector split_right;
-extern Rcpp::NumericVector split_left;
-extern Rcpp::IntegerVector split_var;
-extern Rcpp::IntegerVector node_id;
-extern Rcpp::LogicalVector is_leaf;
-extern Rcpp::NumericVector data_below; // ratio (points in node to total number of points)
+extern std::vector<double> split_right;
+extern std::vector<double> split_left;
+extern std::vector<int> split_var;
+extern std::vector<std::string> split_side; // for child nodes, what side of their parent did they branch off of?
+extern std::vector<int> node_id;
+extern std::vector<int> parent_id;
+extern std::vector<int> is_leaf;
+extern std::vector<double> data_below; // ratio (points in node to total number of points)
 
 /**
  * A density estimation tree is similar to both a decision tree and a space
@@ -211,12 +214,17 @@ class DTree
    * Return whether a query point is within the range of this node.
    */
   bool WithinRange(const arma::vec& query) const;
-  
+
+
+  /* ################################################################################
+  # Stuff to return tree to R
+  ################################################################################ */
+
   // print the tree as a R data frame
   Rcpp::DataFrame Tree2df() const;
-  
+
   // helper to walk down the tree for Tree2df
-  void writeTree(const size_t level = 0) const;
+  void writeTree(const size_t level = 0, const size_t parentID = 0, const std::string parentSide = "NULL") const;
 
  private:
   // The indices in the complete set of points
@@ -271,7 +279,7 @@ class DTree
   DTree* left;
   //! The right child.
   DTree* right;
-  
+
   // a unique ID for this node
   size_t myID;
 
