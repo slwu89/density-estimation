@@ -31,3 +31,5 @@ data(sdata)
 library(det11)
 tree <- ml_det(t(sdata))
 ```
+
+For help, just do `?ml_det`
