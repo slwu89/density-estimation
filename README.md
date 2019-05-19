@@ -30,6 +30,7 @@ library(tsde94)
 data(sdata)
 library(det11)
 tree <- ml_det(dataset = t(sdata))
+processed_tree <- DET_maketree(x = tree)
 ```
 
 For help, just do `?ml_det`
