@@ -23,7 +23,7 @@ This is an R package that runs the algorithm described in Ram, P., & Gray, A. G.
 
 It depends on code from mlpack, see http://www.mlpack.org.
 
-To install this package, you must have first installed the Rcpp, RcppArmadillo, and igraph packages, which it depends on. Then you can install it from github directly with devtools::install_github("slwu89/density-estimation", subdir="det11")
+To install this package, you must have first installed the `Rcpp`, `RcppArmadillo`, and `igraph` packages, which it depends on. Then you can install it from github directly with `devtools::install_github("slwu89/density-estimation", subdir="det11")`
 
 To test it with some sample data, you can do (remember to transpose the data):
 
