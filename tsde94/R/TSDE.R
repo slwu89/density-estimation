@@ -11,7 +11,7 @@
 #' in igraph format
 #'
 #' @param df output of \code{\link{TSDE}} (a \code{\link{data.frame}} object)
-#' @param pass a \code{\link{data.frame}} object which contains
+#' @param pass a \code{\link{data.frame}} of the training data
 #' @param varnames a character vector of variable names (columns of pass)
 #' @param plot produce a plot of the tree?
 #'

@@ -27,6 +27,8 @@ Rcpp::List ml_det(arma::mat& dataset,
     Rcpp::stop("must use >= 2 folds for CV");
   }
   
+  node_ids = 0;
+  
   /* make the tree */
   DTree* det = Trainer(dataset,folds,volreg,maxsize,minsize);
 
@@ -35,6 +37,9 @@ Rcpp::List ml_det(arma::mat& dataset,
   // PrintLeafMembership(det,dataset,)
 
   Rcpp::Rcout << det->ToString();
+  
+  // tag the leaves with idetifiers
+  det->TagTree();
 
   Rcpp::Rcout << std::endl << " --- PRINTING TREE --- " << std::endl;
   det->PrintTree(0);

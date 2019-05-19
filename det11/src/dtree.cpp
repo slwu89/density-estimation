@@ -23,6 +23,19 @@
  */
 #include "dtree.hpp"
 #include <stack>
+ 
+// global variables
+size_t node_ids;
+
+// stuff we need to output
+Rcpp::NumericVector split_right;
+Rcpp::NumericVector split_left;
+Rcpp::IntegerVector split_var;
+Rcpp::IntegerVector node_id;
+Rcpp::LogicalVector is_leaf;
+Rcpp::NumericVector data_below; // ratio (points in node to total number of points)
+
+// DTree member functions:
 
 DTree::DTree() :
     start(0),
@@ -31,7 +44,8 @@ DTree::DTree() :
     root(true),
     bucketTag(-1),
     left(NULL),
-    right(NULL)
+    right(NULL),
+    myID(node_ids++)
 { /* Nothing to do. */ }
 
 
@@ -47,14 +61,16 @@ DTree::DTree(const arma::vec& maxVals,
     root(true),
     bucketTag(-1),
     left(NULL),
-    right(NULL)
+    right(NULL),
+    myID(node_ids++)
 { /* Nothing to do. */ }
 
 DTree::DTree(arma::mat& data) :
     start(0),
     end(data.n_cols),
     left(NULL),
-    right(NULL)
+    right(NULL),
+    myID(node_ids++)
 {
   maxVals.set_size(data.n_rows);
   minVals.set_size(data.n_rows);
@@ -96,7 +112,8 @@ DTree::DTree(const arma::vec& maxVals,
     root(false),
     bucketTag(-1),
     left(NULL),
-    right(NULL)
+    right(NULL),
+    myID(node_ids++)
 { /* Nothing to do. */ }
 
 DTree::DTree(const arma::vec& maxVals,
@@ -615,7 +632,7 @@ void DTree::PrintTree(const size_t level) const {
     for (size_t i = 0; i < level; ++i){
       Rcpp::Rcout << "|\t";
     }
-    Rcpp::Rcout << "Var. " << splitDim << " > " << splitValue << "; ratio: " << ratio;
+    Rcpp::Rcout << "Var. " << splitDim << " > " << splitValue << "; ratio: " << ratio << " id: " << myID;
     Rcpp::Rcout << " printing right";
     right->PrintTree(level + 1);
 
@@ -623,18 +640,69 @@ void DTree::PrintTree(const size_t level) const {
     for (size_t i = 0; i < level; ++i){
       Rcpp::Rcout << "|\t";
     }
-    Rcpp::Rcout << "Var. " << splitDim << " <= " << splitValue << "; ratio: " << ratio;
+    Rcpp::Rcout << "Var. " << splitDim << " <= " << splitValue << "; ratio: " << ratio << " id: " << myID;
     Rcpp::Rcout << " printing left";
     left->PrintTree(level);
   }
   else // If we are a leaf...
   {
-    Rcpp::Rcout << " I'm a leaf!";
+    Rcpp::Rcout << "; I'm a leaf! ratio: " << ratio << " id: " << myID;
     Rcpp::Rcout << ": f(x)=" << std::exp(std::log(ratio) - logVolume);
     if (bucketTag != -1){
       Rcpp::Rcout << " BT:" << bucketTag;
     }
   }
+};
+
+// print the tree as a R data frame
+Rcpp::DataFrame DTree::Tree2df() const {
+  
+
+  
+  
+  return Rcpp::DataFrame::create(
+    Rcpp::Named("ID") = node_id,
+    Rcpp::Named("leaf") = is_leaf,
+    Rcpp::Named("variable") = split_var,
+    Rcpp::Named("below") = data_below,
+    Rcpp::Named("right") = split_right,
+    Rcpp::Named("left") = split_left
+  );
+};
+
+// helper to walk down the tree for Tree2df
+void DTree::writeTree(const size_t level) const {
+  
+  if(level != 0){
+    Rcpp::Rcout << "warning: writing a tree from a node below the root ... are you sure you want to do this?\n";
+  }
+  
+  if (subtreeLeaves > 1){
+    Rcpp::Rcout << "\n";
+    for (size_t i = 0; i < level; ++i){
+      Rcpp::Rcout << "|\t";
+    }
+    Rcpp::Rcout << "Var. " << splitDim << " > " << splitValue << "; ratio: " << ratio << " id: " << myID;
+    Rcpp::Rcout << " printing right";
+    right->PrintTree(level + 1);
+    
+    Rcpp::Rcout << "\n";
+    for (size_t i = 0; i < level; ++i){
+      Rcpp::Rcout << "|\t";
+    }
+    Rcpp::Rcout << "Var. " << splitDim << " <= " << splitValue << "; ratio: " << ratio << " id: " << myID;
+    Rcpp::Rcout << " printing left";
+    left->PrintTree(level);
+  }
+  else // If we are a leaf...
+  {
+    Rcpp::Rcout << "; I'm a leaf! ratio: " << ratio << " id: " << myID;
+    Rcpp::Rcout << ": f(x)=" << std::exp(std::log(ratio) - logVolume);
+    if (bucketTag != -1){
+      Rcpp::Rcout << " BT:" << bucketTag;
+    }
+  }
+  
 };
 
 // Index the buckets for possible usage later.

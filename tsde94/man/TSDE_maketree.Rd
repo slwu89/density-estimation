@@ -9,7 +9,7 @@ TSDE_maketree(df, pass, varnames, plot = FALSE)
 \arguments{
 \item{df}{output of \code{\link{TSDE}} (a \code{\link{data.frame}} object)}
 
-\item{pass}{a \code{\link{data.frame}} object which contains}
+\item{pass}{a \code{\link{data.frame}} of the training data}
 
 \item{varnames}{a character vector of variable names (columns of pass)}
 

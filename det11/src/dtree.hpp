@@ -29,6 +29,15 @@
 #include <string>
 #include <math.h>
 
+extern size_t node_ids;
+
+// stuff we need to output
+extern Rcpp::NumericVector split_right;
+extern Rcpp::NumericVector split_left;
+extern Rcpp::IntegerVector split_var;
+extern Rcpp::IntegerVector node_id;
+extern Rcpp::LogicalVector is_leaf;
+extern Rcpp::NumericVector data_below; // ratio (points in node to total number of points)
 
 /**
  * A density estimation tree is similar to both a decision tree and a space
@@ -202,6 +211,12 @@ class DTree
    * Return whether a query point is within the range of this node.
    */
   bool WithinRange(const arma::vec& query) const;
+  
+  // print the tree as a R data frame
+  Rcpp::DataFrame Tree2df() const;
+  
+  // helper to walk down the tree for Tree2df
+  void writeTree(const size_t level = 0) const;
 
  private:
   // The indices in the complete set of points
@@ -256,6 +271,9 @@ class DTree
   DTree* left;
   //! The right child.
   DTree* right;
+  
+  // a unique ID for this node
+  size_t myID;
 
  public:
   //! Return the starting index of points contained in this node.
