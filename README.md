@@ -35,4 +35,4 @@ tree <- ml_det(dataset = t(sdata))
 processed_tree <- DET_maketree(x = tree)
 ```
 
-For help, just do `?ml_det`
+For help, just do `?ml_det` or `?DET_maketree`
