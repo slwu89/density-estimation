@@ -29,7 +29,7 @@ To test it with some sample data, you can do (remember to transpose the data):
 library(tsde94)
 data(sdata)
 library(det11)
-tree <- ml_det(t(sdata))
+tree <- ml_det(dataset = t(sdata))
 ```
 
 For help, just do `?ml_det`
