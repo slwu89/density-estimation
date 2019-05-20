@@ -758,7 +758,7 @@ Rcpp::DataFrame DTree::Tree2df() const {
     Rcpp::Named("parent_split_edge") = split_side,
     Rcpp::Named("leaf") = is_leaf,
     Rcpp::Named("variable") = split_var,
-    Rcpp::Named("below") = data_below,
+    Rcpp::Named("ratio") = data_below,
     Rcpp::Named("right") = split_right,
     Rcpp::Named("left") = split_left,
     Rcpp::Named("density") = density_node

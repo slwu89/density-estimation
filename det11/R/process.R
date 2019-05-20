@@ -36,7 +36,7 @@ DET_maketree <- function(x){
 
   plot(g,
        layout = igraph::layout_as_tree(g, root = 1),
-       vertex.label = paste0(tree$ID,"\n",round(tree$below,4)),
+       vertex.label = paste0(tree$ID,"\n",round(tree$ratio,4)),
        vertex.shape = node_shape,
        vertex.size = 12,
        vertex.color = node_col,
