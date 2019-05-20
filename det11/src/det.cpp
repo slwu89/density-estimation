@@ -23,7 +23,7 @@
 //'   \itemize{
 //'     \item ID: the unique ID of this node
 //'     \item parent_ID: the ID of the parent (0 for the root node)
-//'     \item parent_split_edge: what edge from the parent is this node a descendent of? (\node{NULL} for the root node)
+//'     \item parent_split_edge: what edge from the parent is this node a descendent of? (\code{NULL} for the root node)
 //'     \item leaf: 0 if not a leaf, 1 if a leaf node
 //'     \item variable: what variable was used to split at this node? (1-indexed; leaves have value -1 as there is no split below a leaf)
 //'     \item ratio: ratio of data points contained at or below this node compared to the whole training set
@@ -32,7 +32,7 @@
 //'     \item density: the estimated density (exp(log(ratio) - logVolume))
 //'     \item volume: the volume contained in this node
 //'     \item size: the number of data points at or below this node
-//'   };
+//'   }
 //' }
 //'
 //' @export
@@ -76,10 +76,7 @@ Rcpp::List ml_det(arma::mat& dataset,
   // tag the leaves with idetifiers
   det->TagTree();
 
-  // Rcpp::Rcout << std::endl << " --- PRINTING TREE --- " << std::endl;
-  // det->PrintTree(0);
-  // Rcpp::Rcout << std::endl << " --- END PRINTING --- " << std::endl;
-  
+  // output
   Rcpp::DataFrame tree = det->Tree2df();
 
   /* free the memory */
