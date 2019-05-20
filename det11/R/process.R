@@ -87,7 +87,7 @@ DET_maketree <- function(x, dataset){
       tree=tree,
       nodes=nodes,
       relations=relations,
-      edge_labels=edge_labels,
+      edge_labels=round(merge(relations, tree, by.x = "to", by.y = "ID")$below*ncol(dataset),0),
       node_shape=node_shape,
       node_color=node_col,
       g=g
