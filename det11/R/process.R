@@ -69,12 +69,14 @@ DET_maketree <- function(x, dataset){
   coordinates[,1] <- scales::rescale(coordinates[,1], to = c(-1,1))
   coordinates[,2] <- scales::rescale(coordinates[,2], to = c(-1,1))
   
+  variable.name <- if(!is.null(rownames(dataset))) rownames(dataset) else paste("V",1:nrow(dataset), sep = "")
+  
   # annotate the split criteria for intermediate node
   for(i in 1:nrow(coordinates))
   {
     if(tree$leaf[i] == 0)
     {
-      label = paste(rownames(dataset)[tree$variable[i]], "<=", round(tree$right[i],3), sep = " ")
+      label = paste(variable.name[tree$variable[i]], "<=", round(tree$right[i],3), sep = " ")
       text(coordinates[i,1], coordinates[i,2]-0.1, label, cex = 0.8)
     } 
   }
