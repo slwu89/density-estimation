@@ -47,13 +47,13 @@ DET_maketree <- function(x, dataset){
   },from=relations$from,to=relations$to)
   
 
-  node_shape <- ifelse(tree$leaf == 0,"circle","rectangle")
+  node_shape <- ifelse(tree$leaf == 0,"circle","square")
   node_col <- ifelse(tree$leaf == 0,"#D1E8E2","#EFE2BA")
   g <- igraph::graph.data.frame(relations, directed = FALSE, vertices = nodes)
 
   plot(g,
        layout = igraph::layout_as_tree(g, root = 1),
-       vertex.label = paste0(round(tree$below,4)),
+       vertex.label = round(tree$below,4),
        vertex.shape = node_shape,
        vertex.size = 12,
        vertex.color = node_col,
