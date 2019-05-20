@@ -4,10 +4,12 @@
 \alias{DET_maketree}
 \title{Process DET output}
 \usage{
-DET_maketree(x)
+DET_maketree(x, dataset)
 }
 \arguments{
 \item{x}{a fitted tree (output of \code{\link[det11]{ml_det}})}
+
+\item{dataset}{rows must be variables, columns are observations}
 }
 \description{
 Process a fitted density estimation tree; return the modified data frame

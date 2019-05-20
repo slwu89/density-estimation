@@ -41,7 +41,9 @@ extern std::vector<int> node_id;
 extern std::vector<int> parent_id;
 extern std::vector<int> is_leaf;
 extern std::vector<double> data_below; // ratio (points in node to total number of points)
-extern std::vector<double> density_node;
+extern std::vector<double> density_node; // density calc f(x) = std::exp(std::log(ratio) - logVolume)
+extern std::vector<double> volume_node; // volume of this node
+extern std::vector<int> n_data; // number of data points at this node
 
 /**
  * A density estimation tree is similar to both a decision tree and a space

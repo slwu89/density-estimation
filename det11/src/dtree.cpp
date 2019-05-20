@@ -37,6 +37,8 @@ std::vector<int> parent_id;
 std::vector<int> is_leaf;
 std::vector<double> data_below; // ratio (points in node to total number of points)
 std::vector<double> density_node;
+std::vector<double> volume_node; // volume of this node
+std::vector<int> n_data; // number of data points at this node
 
 
 /* ################################################################################
@@ -761,7 +763,9 @@ Rcpp::DataFrame DTree::Tree2df() const {
     Rcpp::Named("ratio") = data_below,
     Rcpp::Named("right") = split_right,
     Rcpp::Named("left") = split_left,
-    Rcpp::Named("density") = density_node
+    Rcpp::Named("density") = density_node,
+    Rcpp::Named("volume") = volume_node,
+    Rcpp::Named("size") = n_data
   );
 };
 
@@ -780,6 +784,8 @@ void DTree::writeTree(const size_t level, const size_t parentID, const std::stri
     split_right.push_back(splitValue);
     split_left.push_back(splitValue);
     density_node.push_back(std::exp(std::log(ratio) - logVolume));
+    volume_node.push_back(std::exp(logVolume));
+    n_data.push_back(end - start);
   
     // go down on right split
     right->writeTree(level + 1,myID,"right");
@@ -799,6 +805,8 @@ void DTree::writeTree(const size_t level, const size_t parentID, const std::stri
     split_right.push_back(0.);
     split_left.push_back(0.);
     density_node.push_back(std::exp(std::log(ratio) - logVolume));
+    volume_node.push_back(std::exp(logVolume));
+    n_data.push_back(end - start);
 
   }
 
