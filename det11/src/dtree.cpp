@@ -36,6 +36,12 @@ std::vector<int> node_id;
 std::vector<int> parent_id;
 std::vector<int> is_leaf;
 std::vector<double> data_below; // ratio (points in node to total number of points)
+std::vector<double> density_node;
+
+
+/* ################################################################################
+# DTree member fn definitions
+################################################################################ */
 
 // DTree member functions:
 
@@ -754,7 +760,8 @@ Rcpp::DataFrame DTree::Tree2df() const {
     Rcpp::Named("variable") = split_var,
     Rcpp::Named("below") = data_below,
     Rcpp::Named("right") = split_right,
-    Rcpp::Named("left") = split_left
+    Rcpp::Named("left") = split_left,
+    Rcpp::Named("density") = density_node
   );
 };
 
@@ -771,27 +778,13 @@ void DTree::writeTree(const size_t level, const size_t parentID, const std::stri
     split_side.push_back(parentSide);
     data_below.push_back(ratio);
     split_right.push_back(splitValue);
-    // split_left.push_back(0.);
     split_left.push_back(splitValue);
-
+    density_node.push_back(std::exp(std::log(ratio) - logVolume));
+  
+    // go down on right split
     right->writeTree(level + 1,myID,"right");
-
-    // Rcpp::Rcout << "\n";
-    // for (size_t i = 0; i < level; ++i){
-    //   Rcpp::Rcout << "|\t";
-    // }
-    // Rcpp::Rcout << "Var. " << splitDim << " <= " << splitValue << "; ratio: " << ratio << " id: " << myID;
-    // Rcpp::Rcout << " printing left";
-
-    // // left split
-    // node_id.push_back(myID);
-    // parent_id.push_back(parentID);
-    // is_leaf.push_back(0);
-    // split_var.push_back(splitDim+1);
-    // data_below.push_back(ratio);
-    // split_right.push_back(0.);
-    // split_left.push_back(splitValue);
-
+    
+    // go down on left split
     left->writeTree(level,myID,"left");
   }
   else // If we are a leaf...
@@ -805,12 +798,7 @@ void DTree::writeTree(const size_t level, const size_t parentID, const std::stri
     data_below.push_back(ratio);
     split_right.push_back(0.);
     split_left.push_back(0.);
-
-    // Rcpp::Rcout << "; I'm a leaf! ratio: " << ratio << " id: " << myID;
-    // Rcpp::Rcout << ": f(x)=" << std::exp(std::log(ratio) - logVolume);
-    // if (bucketTag != -1){
-    //   Rcpp::Rcout << " BT:" << bucketTag;
-    // }
+    density_node.push_back(std::exp(std::log(ratio) - logVolume));
 
   }
 

@@ -39,6 +39,7 @@ Rcpp::List ml_det(arma::mat& dataset,
   data_below.clear();
   split_right.clear();
   split_left.clear();
+  density_node.clear();
   
   /* make the tree */
   DTree* det = Trainer(dataset,folds,volreg,maxsize,minsize);
@@ -48,7 +49,7 @@ Rcpp::List ml_det(arma::mat& dataset,
   // PrintLeafMembership(det,dataset,)
   
   if(verbose){
-    Rcpp::Rcout << det->ToString();
+    Rcpp::Rcout << std::endl << det->ToString();
   }
   
   // tag the leaves with idetifiers
