@@ -4,8 +4,14 @@
 \alias{ml_det}
 \title{Density Estimation Trees (DET)}
 \usage{
-ml_det(dataset, verbose = TRUE, folds = 10L, volreg = FALSE,
-  maxsize = 10L, minsize = 5L)
+ml_det(
+  dataset,
+  verbose = TRUE,
+  folds = 10L,
+  volreg = FALSE,
+  maxsize = 10L,
+  minsize = 5L
+)
 }
 \arguments{
 \item{dataset}{(note: rows must be variables; columns are observations)}

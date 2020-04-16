@@ -4,8 +4,14 @@
 \alias{TSDE}
 \title{TSDE algorithm}
 \usage{
-TSDE(data, nmbcuts = 100L, lower00 = -3.5, upper00 = 3.5,
-  csmooth = 0.1, sizetre = 20L)
+TSDE(
+  data,
+  nmbcuts = 100L,
+  lower00 = -3.5,
+  upper00 = 3.5,
+  csmooth = 0.1,
+  sizetre = 20L
+)
 }
 \arguments{
 \item{data}{the input data (unstandardized)}

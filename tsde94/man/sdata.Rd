@@ -4,7 +4,9 @@
 \name{sdata}
 \alias{sdata}
 \title{Passes from Tim and Nong}
-\format{A matrix}
+\format{
+A matrix
+}
 \usage{
 sdata
 }
