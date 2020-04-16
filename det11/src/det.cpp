@@ -13,7 +13,7 @@
 //' @param dataset (note: rows must be variables; columns are observations)
 //' @param folds number of folds for k-fold cross validation
 //' @param volreg use volume regularization?
-//' @param maxsize vaximum number of points allowed in a leaf
+//' @param maxsize maximum number of points allowed in a leaf
 //' @param minsize minimum number of points allowed in a leaf
 //' 
 //' @return a list with two elements
